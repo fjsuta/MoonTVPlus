@@ -747,3 +747,135 @@ export async function getTMDBImages(
     return { code: 500, images: null };
   }
 }
+
+/**
+ * 搜索TMDB艺人
+ * @param apiKey - TMDB API Key
+ * @param query - 搜索关键词
+ * @param page - 页码
+ * @param proxy - 代理服务器地址
+ * @param reverseProxyBaseUrl - 反代 Base URL
+ * @returns 艺人搜索结果列表
+ */
+export async function searchTMDBPerson(
+  apiKey: string,
+  query: string,
+  page = 1,
+  proxy?: string,
+  reverseProxyBaseUrl?: string
+): Promise<{ code: number; results: any[]; page: number; total_pages: number; total_results: number }> {
+  try {
+    const actualKey = getNextApiKey(apiKey);
+    if (!actualKey || !query) {
+      return { code: 400, results: [], page: 1, total_pages: 0, total_results: 0 };
+    }
+
+    const baseUrl = reverseProxyBaseUrl || DEFAULT_TMDB_BASE_URL;
+    const url = `${baseUrl}/3/search/person?api_key=${actualKey}&language=zh-CN&query=${encodeURIComponent(query)}&page=${page}`;
+
+    const response = await universalFetch(url, proxy);
+
+    if (!response.ok) {
+      console.error('TMDB Person Search API 请求失败:', response.status, response.statusText);
+      return { code: response.status, results: [], page: 1, total_pages: 0, total_results: 0 };
+    }
+
+    const data: any = await response.json();
+
+    return {
+      code: 200,
+      results: data.results || [],
+      page: data.page || 1,
+      total_pages: data.total_pages || 0,
+      total_results: data.total_results || 0,
+    };
+  } catch (error) {
+    console.error('搜索 TMDB 艺人失败:', error);
+    return { code: 500, results: [], page: 1, total_pages: 0, total_results: 0 };
+  }
+}
+
+/**
+ * 获取TMDB艺人详情
+ * @param apiKey - TMDB API Key
+ * @param personId - 艺人ID
+ * @param proxy - 代理服务器地址
+ * @param reverseProxyBaseUrl - 反代 Base URL
+ * @returns 艺人详细信息
+ */
+export async function getTMDBPersonDetails(
+  apiKey: string,
+  personId: number,
+  proxy?: string,
+  reverseProxyBaseUrl?: string
+): Promise<{ code: number; person: any }> {
+  try {
+    const actualKey = getNextApiKey(apiKey);
+    if (!actualKey || !personId) {
+      return { code: 400, person: null };
+    }
+
+    const baseUrl = reverseProxyBaseUrl || DEFAULT_TMDB_BASE_URL;
+    const url = `${baseUrl}/3/person/${personId}?api_key=${actualKey}&language=zh-CN`;
+
+    const response = await universalFetch(url, proxy);
+
+    if (!response.ok) {
+      console.error('TMDB Person Details API 请求失败:', response.status, response.statusText);
+      return { code: response.status, person: null };
+    }
+
+    const data: any = await response.json();
+
+    return {
+      code: 200,
+      person: data,
+    };
+  } catch (error) {
+    console.error('获取 TMDB 艺人详情失败:', error);
+    return { code: 500, person: null };
+  }
+}
+
+/**
+ * 获取TMDB艺人作品列表
+ * @param apiKey - TMDB API Key
+ * @param personId - 艺人ID
+ * @param proxy - 代理服务器地址
+ * @param reverseProxyBaseUrl - 反代 Base URL
+ * @returns 艺人作品列表（cast和crew）
+ */
+export async function getTMDBPersonCredits(
+  apiKey: string,
+  personId: number,
+  proxy?: string,
+  reverseProxyBaseUrl?: string
+): Promise<{ code: number; cast: any[]; crew: any[] }> {
+  try {
+    const actualKey = getNextApiKey(apiKey);
+    if (!actualKey || !personId) {
+      return { code: 400, cast: [], crew: [] };
+    }
+
+    const baseUrl = reverseProxyBaseUrl || DEFAULT_TMDB_BASE_URL;
+    const url = `${baseUrl}/3/person/${personId}/combined_credits?api_key=${actualKey}&language=zh-CN`;
+
+    const response = await universalFetch(url, proxy);
+
+    if (!response.ok) {
+      console.error('TMDB Person Credits API 请求失败:', response.status, response.statusText);
+      return { code: response.status, cast: [], crew: [] };
+    }
+
+    const data: any = await response.json();
+
+    return {
+      code: 200,
+      cast: data.cast || [],
+      crew: data.crew || [],
+    };
+  } catch (error) {
+    console.error('获取 TMDB 艺人作品失败:', error);
+    return { code: 500, cast: [], crew: [] };
+  }
+}
