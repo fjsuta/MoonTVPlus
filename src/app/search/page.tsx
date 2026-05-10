@@ -197,22 +197,26 @@ function SearchPageClient() {
     title: string;
     year: string;
     yearOrder: 'none' | 'asc' | 'desc';
+    actor: string;
   }>({
     source: 'all',
     title: 'all',
     year: 'all',
     yearOrder: 'none',
+    actor: 'all',
   });
   const [filterAgg, setFilterAgg] = useState<{
     source: string;
     title: string;
     year: string;
     yearOrder: 'none' | 'asc' | 'desc';
+    actor: string;
   }>({
     source: 'all',
     title: 'all',
     year: 'all',
     yearOrder: 'none',
+    actor: 'all',
   });
 
   // 获取默认聚合设置：只读取用户本地设置，默认为 true
@@ -526,10 +530,20 @@ function SearchPageClient() {
       ];
     };
 
+    const buildActorOptions = (actors: string[]) => [
+      { label: '全部艺人', value: 'all' },
+      ...Array.from(new Set(actors.flat()))
+        .filter((actor) => actor && actor.trim() !== '')
+        .sort((a, b) => a.localeCompare(b))
+        .map((actor) => ({ label: actor, value: actor })),
+    ];
+
     const allForSourceOptions = exactSearchFiltered.filter((item) => {
       if (filterAll.title !== 'all' && item.title !== filterAll.title)
         return false;
       if (filterAll.year !== 'all' && item.year !== filterAll.year)
+        return false;
+      if (filterAll.actor !== 'all' && !item.actors?.includes(filterAll.actor))
         return false;
       return true;
     });
@@ -539,6 +553,8 @@ function SearchPageClient() {
         return false;
       if (filterAll.year !== 'all' && item.year !== filterAll.year)
         return false;
+      if (filterAll.actor !== 'all' && !item.actors?.includes(filterAll.actor))
+        return false;
       return true;
     });
 
@@ -547,12 +563,26 @@ function SearchPageClient() {
         return false;
       if (filterAll.title !== 'all' && item.title !== filterAll.title)
         return false;
+      if (filterAll.actor !== 'all' && !item.actors?.includes(filterAll.actor))
+        return false;
+      return true;
+    });
+
+    const allForActorOptions = exactSearchFiltered.filter((item) => {
+      if (filterAll.source !== 'all' && item.source !== filterAll.source)
+        return false;
+      if (filterAll.title !== 'all' && item.title !== filterAll.title)
+        return false;
+      if (filterAll.year !== 'all' && item.year !== filterAll.year)
+        return false;
       return true;
     });
 
     const aggForSourceOptions = aggregatedResults.filter(([_, group]) => {
       const gTitle = group[0]?.title ?? '';
       const gYear = group[0]?.year ?? 'unknown';
+      const hasActor = filterAgg.actor === 'all' || group.some((item) => item.actors?.includes(filterAgg.actor));
+      if (!hasActor) return false;
       if (filterAgg.title !== 'all' && gTitle !== filterAgg.title) return false;
       if (filterAgg.year !== 'all' && gYear !== filterAgg.year) return false;
       return true;
@@ -564,7 +594,8 @@ function SearchPageClient() {
         filterAgg.source === 'all'
           ? true
           : group.some((item) => item.source === filterAgg.source);
-      if (!hasSource) return false;
+      const hasActor = filterAgg.actor === 'all' || group.some((item) => item.actors?.includes(filterAgg.actor));
+      if (!hasSource || !hasActor) return false;
       if (filterAgg.year !== 'all' && gYear !== filterAgg.year) return false;
       return true;
     });
@@ -575,8 +606,22 @@ function SearchPageClient() {
         filterAgg.source === 'all'
           ? true
           : group.some((item) => item.source === filterAgg.source);
+      const hasActor = filterAgg.actor === 'all' || group.some((item) => item.actors?.includes(filterAgg.actor));
+      if (!hasSource || !hasActor) return false;
+      if (filterAgg.title !== 'all' && gTitle !== filterAgg.title) return false;
+      return true;
+    });
+
+    const aggForActorOptions = aggregatedResults.filter(([_, group]) => {
+      const gTitle = group[0]?.title ?? '';
+      const gYear = group[0]?.year ?? 'unknown';
+      const hasSource =
+        filterAgg.source === 'all'
+          ? true
+          : group.some((item) => item.source === filterAgg.source);
       if (!hasSource) return false;
       if (filterAgg.title !== 'all' && gTitle !== filterAgg.title) return false;
+      if (filterAgg.year !== 'all' && gYear !== filterAgg.year) return false;
       return true;
     });
 
@@ -602,6 +647,11 @@ function SearchPageClient() {
         key: 'year',
         label: '年份',
         options: buildYearOptions(allForYearOptions.map((item) => item.year)),
+      },
+      {
+        key: 'actor',
+        label: '艺人',
+        options: buildActorOptions(allForActorOptions.flatMap((item) => item.actors || [])),
       },
     ];
 
@@ -632,6 +682,15 @@ function SearchPageClient() {
           aggForYearOptions.map(([_, group]) => group[0]?.year ?? 'unknown')
         ),
       },
+      {
+        key: 'actor',
+        label: '艺人',
+        options: buildActorOptions(
+          aggForActorOptions.flatMap(([_, group]) =>
+            group.flatMap((item) => item.actors || [])
+          )
+        ),
+      },
     ];
 
     return { categoriesAll, categoriesAgg };
@@ -639,7 +698,7 @@ function SearchPageClient() {
 
   // 非聚合：应用筛选与排序
   const filteredAllResults = useMemo(() => {
-    const { source, title, year, yearOrder } = filterAll;
+    const { source, title, year, yearOrder, actor } = filterAll;
 
     // 首先应用精确搜索过滤
     const exactSearchFiltered = exactSearch
@@ -652,6 +711,7 @@ function SearchPageClient() {
       if (source !== 'all' && item.source !== source) return false;
       if (title !== 'all' && item.title !== title) return false;
       if (year !== 'all' && item.year !== year) return false;
+      if (actor !== 'all' && !item.actors?.includes(actor)) return false;
       return true;
     });
 
@@ -681,7 +741,7 @@ function SearchPageClient() {
 
   // 聚合：应用筛选与排序
   const filteredAggResults = useMemo(() => {
-    const { source, title, year, yearOrder } = filterAgg as any;
+    const { source, title, year, yearOrder, actor } = filterAgg as any;
     const filtered = aggregatedResults.filter(([_, group]) => {
       const gTitle = group[0]?.title ?? '';
       const gYear = group[0]?.year ?? 'unknown';
@@ -690,6 +750,8 @@ function SearchPageClient() {
       if (!hasSource) return false;
       if (title !== 'all' && gTitle !== title) return false;
       if (year !== 'all' && gYear !== year) return false;
+      const hasActor = actor === 'all' || group.some((item) => item.actors?.includes(actor));
+      if (!hasActor) return false;
       return true;
     });
 

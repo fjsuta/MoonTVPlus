@@ -4,7 +4,7 @@ import { ArrowDownWideNarrow, ArrowUpDown,ArrowUpNarrowWide } from 'lucide-react
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 
-export type SearchFilterKey = 'source' | 'title' | 'year' | 'yearOrder';
+export type SearchFilterKey = 'source' | 'title' | 'year' | 'yearOrder' | 'actor';
 
 export interface SearchFilterOption {
   label: string;
@@ -28,6 +28,7 @@ const DEFAULTS: Record<SearchFilterKey, string> = {
   title: 'all',
   year: 'all',
   yearOrder: 'none',
+  actor: 'all',
 };
 
 const SearchResultFilter: React.FC<SearchResultFilterProps> = ({ categories, values, onChange }) => {
@@ -51,8 +52,8 @@ const SearchResultFilter: React.FC<SearchResultFilterProps> = ({ categories, val
       const isMobile = viewportWidth < 768;
 
       let x = rect.left;
-      // 为标题筛选设置更大的最小宽度，其他保持原来的最小宽度
-      const minWidth = categoryKey === 'title' ? 400 : 240;
+      // 为标题筛选和艺人筛选设置更大的最小宽度，其他保持原来的最小宽度
+      const minWidth = categoryKey === 'title' || categoryKey === 'actor' ? 400 : 240;
       let dropdownWidth = Math.max(rect.width, minWidth);
       let useFixedWidth = false;
 
@@ -212,7 +213,7 @@ const SearchResultFilter: React.FC<SearchResultFilterProps> = ({ categories, val
           style={{
             left: `${dropdownPosition.x}px`,
             top: `${dropdownPosition.y}px`,
-            ...(typeof window !== 'undefined' && window.innerWidth < 768 ? { width: `${dropdownPosition.width}px` } : { minWidth: `${Math.max(dropdownPosition.width, activeCategory === 'title' ? 400 : 240)}px` }),
+            ...(typeof window !== 'undefined' && window.innerWidth < 768 ? { width: `${dropdownPosition.width}px` } : { minWidth: `${Math.max(dropdownPosition.width, activeCategory === 'title' || activeCategory === 'actor' ? 400 : 240)}px` }),
             maxWidth: '600px',
             position: 'fixed',
           }}

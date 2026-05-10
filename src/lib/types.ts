@@ -191,6 +191,7 @@ export interface SearchResult {
   rating?: number; // 评分
   initialEpisodeIndex?: number; // 初始集数索引（用于小雅源从文件点击进入时指定集数）
   metadataSource?: 'folder' | 'nfo' | 'tmdb' | 'file'; // 元数据来源（用于小雅源判断是否保留fileName）
+  actors?: string[]; // 演员列表
 }
 
 // 豆瓣数据结构
