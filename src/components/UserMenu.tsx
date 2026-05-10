@@ -23,6 +23,7 @@ import {
   MoveDown,
   MoveUp,
   Package,
+  Palette,
   Router as RouterIcon,
   Rss,
   Settings,
@@ -198,6 +199,23 @@ export const UserMenu: React.FC = () => {
   const [homeModules, setHomeModules] = useState<HomeModule[]>(defaultHomeModules);
   const [homeBannerEnabled, setHomeBannerEnabled] = useState(true);
   const [homeContinueWatchingEnabled, setHomeContinueWatchingEnabled] = useState(true);
+
+  // 主题颜色选项
+  const themeColorOptions = [
+    { value: 'green', label: '绿色', color: '#22c55e' },
+    { value: 'blue', label: '蓝色', color: '#3b82f6' },
+    { value: 'red', label: '红色', color: '#ef4444' },
+    { value: 'orange', label: '橙色', color: '#f97316' },
+    { value: 'yellow', label: '黄色', color: '#eab308' },
+    { value: 'purple', label: '紫色', color: '#a855f7' },
+    { value: 'pink', label: '粉色', color: '#ec4899' },
+    { value: 'teal', label: '青色', color: '#14b8a6' },
+    { value: 'cyan', label: '天蓝', color: '#06b6d4' },
+    { value: 'indigo', label: '靛蓝', color: '#6366f1' },
+  ];
+
+  const [themeColor, setThemeColor] = useState('green');
+  const [uiStyle, setUiStyle] = useState<'default' | 'glass'>('default');
 
   // 豆瓣数据源选项
   const doubanDataSourceOptions = [
@@ -584,6 +602,20 @@ export const UserMenu: React.FC = () => {
       const savedExactSearch = localStorage.getItem('exactSearch');
       if (savedExactSearch !== null) {
         setExactSearch(savedExactSearch === 'true');
+      }
+
+      // 加载主题颜色设置
+      const savedThemeColor = localStorage.getItem('themeColor');
+      if (savedThemeColor !== null) {
+        setThemeColor(savedThemeColor);
+        document.documentElement.setAttribute('data-theme-color', savedThemeColor);
+      }
+
+      // 加载UI风格设置
+      const savedUiStyle = localStorage.getItem('uiStyle');
+      if (savedUiStyle === 'default' || savedUiStyle === 'glass') {
+        setUiStyle(savedUiStyle);
+        document.documentElement.setAttribute('data-ui-style', savedUiStyle);
       }
 
       // 加载最大同时下载限制设置
@@ -1228,6 +1260,22 @@ export const UserMenu: React.FC = () => {
     }
   };
 
+  const handleThemeColorChange = (value: string) => {
+    setThemeColor(value);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('themeColor', value);
+      document.documentElement.setAttribute('data-theme-color', value);
+    }
+  };
+
+  const handleUiStyleChange = (value: 'default' | 'glass') => {
+    setUiStyle(value);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('uiStyle', value);
+      document.documentElement.setAttribute('data-ui-style', value);
+    }
+  };
+
   const handleHomeBannerToggle = (value: boolean) => {
     setHomeBannerEnabled(value);
     if (typeof window !== 'undefined') {
@@ -1344,6 +1392,8 @@ export const UserMenu: React.FC = () => {
     setHomeContinueWatchingEnabled(true);
     setHomeModules(defaultHomeModules);
     setSearchTraditionalToSimplified(false);
+    setThemeColor('green');
+    setUiStyle('default');
 
     if (typeof window !== 'undefined') {
       localStorage.setItem('defaultAggregateSearch', JSON.stringify(true));
@@ -1371,6 +1421,10 @@ export const UserMenu: React.FC = () => {
       localStorage.setItem('homeContinueWatchingEnabled', 'true');
       localStorage.setItem('homeModules', JSON.stringify(defaultHomeModules));
       localStorage.setItem('searchTraditionalToSimplified', 'false');
+      localStorage.setItem('themeColor', 'green');
+      localStorage.setItem('uiStyle', 'default');
+      document.documentElement.setAttribute('data-theme-color', 'green');
+      document.documentElement.setAttribute('data-ui-style', 'default');
       window.dispatchEvent(new CustomEvent('homeModulesUpdated'));
     }
   };
@@ -2384,6 +2438,79 @@ export const UserMenu: React.FC = () => {
                         <div className='absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full transition-transform peer-checked:translate-x-5'></div>
                       </div>
                     </label>
+                  </div>
+
+                  {/* 主题颜色 */}
+                  <div className='space-y-2'>
+                    <div className='flex items-center justify-between'>
+                      <div>
+                        <h4 className='text-sm font-medium text-gray-700 dark:text-gray-300'>
+                          主题颜色
+                        </h4>
+                        <p className='text-xs text-gray-500 dark:text-gray-400 mt-1'>
+                          选择应用的主题色调
+                        </p>
+                      </div>
+                    </div>
+                    <div className='flex flex-wrap gap-2'>
+                      {themeColorOptions.map((option) => (
+                        <button
+                          key={option.value}
+                          onClick={() => handleThemeColorChange(option.value)}
+                          className={`w-8 h-8 rounded-full transition-transform ${
+                            themeColor === option.value
+                              ? 'ring-2 ring-offset-2 ring-gray-400 dark:ring-offset-gray-800 scale-110'
+                              : 'hover:scale-105'
+                          }`}
+                          style={{ backgroundColor: option.color }}
+                          title={option.label}
+                          aria-label={option.label}
+                        />
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* UI风格 */}
+                  <div className='space-y-2'>
+                    <div>
+                      <h4 className='text-sm font-medium text-gray-700 dark:text-gray-300'>
+                        UI风格
+                      </h4>
+                      <p className='text-xs text-gray-500 dark:text-gray-400 mt-1'>
+                        选择界面视觉效果风格
+                      </p>
+                    </div>
+                    <div className='grid grid-cols-2 gap-2'>
+                      <button
+                        onClick={() => handleUiStyleChange('default')}
+                        className={`px-4 py-2.5 text-sm rounded-lg border-2 transition-all ${
+                          uiStyle === 'default'
+                            ? 'border-green-500 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300'
+                            : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+                        }`}
+                      >
+                        <div className='flex items-center gap-2'>
+                          <div className='w-4 h-4 rounded bg-gray-200 dark:bg-gray-700'></div>
+                          <span>默认</span>
+                        </div>
+                      </button>
+                      <button
+                        onClick={() => handleUiStyleChange('glass')}
+                        className={`px-4 py-2.5 text-sm rounded-lg border-2 transition-all ${
+                          uiStyle === 'glass'
+                            ? 'border-green-500 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300'
+                            : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+                        }`}
+                      >
+                        <div className='flex items-center gap-2'>
+                          <div className='w-4 h-4 rounded bg-white/30 backdrop-blur-sm border border-white/50'></div>
+                          <span>毛玻璃</span>
+                        </div>
+                      </button>
+                    </div>
+                    <p className='text-xs text-gray-500 dark:text-gray-400'>
+                      毛玻璃效果：高级半透明毛玻璃质感，需刷新页面生效
+                    </p>
                   </div>
                 </div>
               )}

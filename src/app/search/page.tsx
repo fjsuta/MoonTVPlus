@@ -1926,20 +1926,7 @@ function SearchPageClient() {
                     triggerSearch={triggerPansouSearch}
                   />
                 </>
-              ) : (
-                <>
-                  {/* ACG 磁力搜索结果 */}
-                  <div className='mb-4'>
-                    <h2 className='text-xl font-bold text-gray-800 dark:text-gray-200'>
-                      动漫磁力搜索结果
-                    </h2>
-                  </div>
-                  <AcgSearch
-                    keyword={searchQuery}
-                    triggerSearch={triggerAcgSearch}
-                  />
-                </>
-              )) : activeTab === 'person' ? (
+              ) : activeTab === 'person' ? (
                 <>
                   {/* 艺人搜索结果 */}
                   <div className='mb-4 flex items-center justify-between'>
@@ -2017,6 +2004,19 @@ function SearchPageClient() {
                       ))}
                     </div>
                   )}
+                </>
+              ) : (
+                <>
+                  {/* ACG 磁力搜索结果 */}
+                  <div className='mb-4'>
+                    <h2 className='text-xl font-bold text-gray-800 dark:text-gray-200'>
+                      动漫磁力搜索结果
+                    </h2>
+                  </div>
+                  <AcgSearch
+                    keyword={searchQuery}
+                    triggerSearch={triggerAcgSearch}
+                  />
                 </>
               )}
             </section>
