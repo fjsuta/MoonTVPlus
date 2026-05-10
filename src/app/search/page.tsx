@@ -10,6 +10,7 @@ import {
   Magnet,
   RefreshCw,
   Search,
+  User,
   X,
 } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -38,6 +39,7 @@ import CapsuleSwitch from '@/components/CapsuleSwitch';
 import ImageViewer from '@/components/ImageViewer';
 import PageLayout from '@/components/PageLayout';
 import PansouSearch from '@/components/PansouSearch';
+import PersonDetailPanel from '@/components/PersonDetailPanel';
 import ProxyImage from '@/components/ProxyImage';
 import SearchResultFilter, {
   SearchFilterCategory,
@@ -51,8 +53,8 @@ function SearchPageClient() {
   const [searchHistory, setSearchHistory] = useState<string[]>([]);
   // 返回顶部按钮显示状态
   const [showBackToTop, setShowBackToTop] = useState(false);
-  // 选项卡状态: 'video' 或 'pansou' 或 'acg'
-  const [activeTab, setActiveTab] = useState<'video' | 'pansou' | 'acg'>(
+  // 选项卡状态: 'video' 或 'pansou' 或 'acg' 或 'person'
+  const [activeTab, setActiveTab] = useState<'video' | 'pansou' | 'acg' | 'person'>(
     'video'
   );
   // Pansou 搜索触发标志
@@ -98,6 +100,11 @@ function SearchPageClient() {
   const [isFromCache, setIsFromCache] = useState(false);
   // 精确搜索开关
   const [exactSearch, setExactSearch] = useState(true);
+  // 艺人搜索相关状态
+  const [personResults, setPersonResults] = useState<any[]>([]);
+  const [personLoading, setPersonLoading] = useState(false);
+  const [selectedPersonId, setSelectedPersonId] = useState<number | null>(null);
+  const [showPersonDetail, setShowPersonDetail] = useState(false);
 
   // 生成缓存键
   const getCacheKey = (query: string) => {
@@ -937,6 +944,10 @@ function SearchPageClient() {
     if (activeTab === 'acg' && searchQuery.trim() && showResults) {
       setTriggerAcgSearch((prev) => !prev);
     }
+    // 如果切换到艺人搜索选项卡，且有搜索关键词，且已显示结果，则触发搜索
+    if (activeTab === 'person' && searchQuery.trim() && showResults) {
+      handlePersonSearch(searchQuery.trim());
+    }
   }, [activeTab]);
 
   useEffect(() => {
@@ -944,7 +955,7 @@ function SearchPageClient() {
     const typeParam = searchParams.get('type');
     const query = searchParams.get('q');
 
-    if (typeParam === 'pansou' || typeParam === 'acg') {
+    if (typeParam === 'pansou' || typeParam === 'acg' || typeParam === 'person') {
       setActiveTab(typeParam);
 
       // 如果有搜索关键词且显示结果，触发对应的搜索
@@ -958,6 +969,8 @@ function SearchPageClient() {
             setTriggerPansouSearch((prev) => !prev);
           } else if (typeParam === 'acg') {
             setTriggerAcgSearch((prev) => !prev);
+          } else if (typeParam === 'person') {
+            handlePersonSearch(query.trim());
           }
         }, 100);
       }
@@ -1395,6 +1408,11 @@ function SearchPageClient() {
       // ACG 磁力搜索 - 触发搜索
       router.push(`/search?q=${encodeURIComponent(trimmed)}&type=acg`);
       setTriggerAcgSearch((prev) => !prev);
+    } else if (activeTab === 'person') {
+      // 艺人搜索
+      router.push(`/search?q=${encodeURIComponent(trimmed)}&type=person`);
+      setShowResults(true);
+      handlePersonSearch(trimmed);
     }
   };
 
@@ -1442,6 +1460,13 @@ function SearchPageClient() {
         `/search?q=${encodeURIComponent(processedSuggestion)}&type=acg`
       );
       setTriggerAcgSearch((prev) => !prev);
+    } else if (activeTab === 'person') {
+      // 艺人搜索
+      router.push(
+        `/search?q=${encodeURIComponent(processedSuggestion)}&type=person`
+      );
+      setShowResults(true);
+      handlePersonSearch(processedSuggestion);
     }
   };
 
@@ -1460,7 +1485,7 @@ function SearchPageClient() {
   };
 
   // 处理标签切换
-  const handleTabChange = (newTab: 'video' | 'pansou' | 'acg') => {
+  const handleTabChange = (newTab: 'video' | 'pansou' | 'acg' | 'person') => {
     setActiveTab(newTab);
 
     // 如果有搜索关键词，更新 URL
@@ -1470,6 +1495,35 @@ function SearchPageClient() {
         `/search?q=${encodeURIComponent(currentQuery)}&type=${newTab}`
       );
     }
+  };
+
+  // 艺人搜索处理函数
+  const handlePersonSearch = async (query: string) => {
+    if (!query.trim()) return;
+
+    setPersonLoading(true);
+    setPersonResults([]);
+
+    try {
+      const response = await fetch(`/api/tmdb/search-person?query=${encodeURIComponent(query.trim())}`);
+      if (!response.ok) throw new Error('艺人搜索失败');
+
+      const data = await response.json();
+      if (data.success) {
+        setPersonResults(data.results || []);
+      }
+    } catch (error) {
+      console.error('艺人搜索失败:', error);
+      setPersonResults([]);
+    } finally {
+      setPersonLoading(false);
+    }
+  };
+
+  // 点击艺人卡片，打开详情面板
+  const handlePersonClick = (personId: number) => {
+    setSelectedPersonId(personId);
+    setShowPersonDetail(true);
   };
 
   return (
@@ -1486,7 +1540,11 @@ function SearchPageClient() {
                 value={searchQuery}
                 onChange={handleInputChange}
                 onFocus={handleInputFocus}
-                placeholder='搜索电影、电视剧...'
+                placeholder={
+                  activeTab === 'person'
+                    ? '搜索演员、导演、编剧...'
+                    : '搜索电影、电视剧...'
+                }
                 autoComplete='off'
                 className='w-full h-12 rounded-lg bg-gray-50/80 py-3 pl-10 pr-12 text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-400 focus:bg-white border border-gray-200/50 shadow-sm dark:bg-gray-800 dark:text-gray-300 dark:placeholder-gray-500 dark:focus:bg-gray-700 dark:border-gray-700'
               />
@@ -1539,6 +1597,11 @@ function SearchPageClient() {
                   icon: <Film size={16} />,
                 },
                 {
+                  label: '艺人搜索',
+                  value: 'person',
+                  icon: <User size={16} />,
+                },
+                {
                   label: '网盘搜索',
                   value: 'pansou',
                   icon: <HardDrive size={16} />,
@@ -1556,7 +1619,7 @@ function SearchPageClient() {
               ]}
               active={activeTab}
               onChange={(value) =>
-                handleTabChange(value as 'video' | 'pansou' | 'acg')
+                handleTabChange(value as 'video' | 'pansou' | 'acg' | 'person')
               }
             />
           </div>
@@ -1876,6 +1939,85 @@ function SearchPageClient() {
                     triggerSearch={triggerAcgSearch}
                   />
                 </>
+              )) : activeTab === 'person' ? (
+                <>
+                  {/* 艺人搜索结果 */}
+                  <div className='mb-4 flex items-center justify-between'>
+                    <h2 className='text-xl font-bold text-gray-800 dark:text-gray-200'>
+                      艺人搜索结果
+                      {personResults.length > 0 && (
+                        <span className='ml-2 text-sm font-normal text-gray-500 dark:text-gray-400'>
+                          共 {personResults.length} 位艺人
+                        </span>
+                      )}
+                    </h2>
+                  </div>
+
+                  {personLoading && (
+                    <div className='flex justify-center items-center h-40'>
+                      <div className='animate-spin rounded-full h-8 w-8 border-b-2 border-green-500'></div>
+                    </div>
+                  )}
+
+                  {!personLoading && personResults.length === 0 && showResults && (
+                    <div className='text-center text-gray-500 py-8 dark:text-gray-400'>
+                      未找到相关艺人
+                    </div>
+                  )}
+
+                  {!personLoading && personResults.length > 0 && (
+                    <div className='grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6'>
+                      {personResults.map((person: any) => (
+                        <div
+                          key={person.id}
+                          onClick={() => handlePersonClick(person.id)}
+                          className='group cursor-pointer'
+                        >
+                          <div className='relative aspect-[3/4] rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-800 mb-3 transition-all duration-300 group-hover:scale-105 group-hover:shadow-lg'>
+                            {person.profile_path ? (
+                              <ProxyImage
+                                originalSrc={`https://image.tmdb.org/t/p/w342${person.profile_path}`}
+                                alt={person.name}
+                                className='absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-110'
+                                draggable={false}
+                              />
+                            ) : (
+                              <div className='absolute inset-0 flex items-center justify-center bg-gradient-to-br from-green-50 to-blue-50 dark:from-gray-700 dark:to-gray-800'>
+                                <User size={48} className='text-gray-300 dark:text-gray-600' />
+                              </div>
+                            )}
+
+                            <div className='absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300' />
+
+                            <div className='absolute bottom-0 left-0 right-0 p-3 translate-y-full group-hover:translate-y-0 transition-transform duration-300'>
+                              <p className='text-white text-sm font-medium line-clamp-1'>
+                                {person.name}
+                              </p>
+                              {person.known_for_department && (
+                                <p className='text-white/80 text-xs mt-1'>
+                                  {person.known_for_department === 'Acting' ? '演员' :
+                                   person.known_for_department === 'Directing' ? '导演' :
+                                   person.known_for_department === 'Writing' ? '编剧' :
+                                   person.known_for_department}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+
+                          <h3 className='text-sm font-medium text-gray-900 dark:text-gray-100 text-center line-clamp-1 group-hover:text-green-600 dark:group-hover:text-green-400 transition-colors'>
+                            {person.name}
+                          </h3>
+
+                          {person.known_for && person.known_for.length > 0 && (
+                            <p className='text-xs text-gray-500 dark:text-gray-400 text-center mt-1 line-clamp-1'>
+                              代表作：{person.known_for.slice(0, 2).map((work: any) => work.title || work.name).join(' / ')}
+                            </p>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </>
               )}
             </section>
           ) : searchHistory.length > 0 ? (
@@ -1928,6 +2070,14 @@ function SearchPageClient() {
                             )}&type=acg`
                           );
                           setTriggerAcgSearch((prev) => !prev);
+                        } else if (activeTab === 'person') {
+                          // 艺人搜索
+                          router.push(
+                            `/search?q=${encodeURIComponent(
+                              item.trim()
+                            )}&type=person`
+                          );
+                          handlePersonSearch(item.trim());
                         }
                       }}
                       className='px-4 py-2 bg-gray-500/10 hover:bg-gray-300 rounded-full text-sm text-gray-700 transition-colors duration-200 dark:bg-gray-700/50 dark:hover:bg-gray-600 dark:text-gray-300'
@@ -1960,6 +2110,18 @@ function SearchPageClient() {
           onClose={() => setPreviewImage(null)}
           imageUrl={previewImage.url}
           alt={previewImage.alt}
+        />
+      )}
+
+      {/* 艺人详情面板 */}
+      {showPersonDetail && selectedPersonId && (
+        <PersonDetailPanel
+          isOpen={showPersonDetail}
+          onClose={() => {
+            setShowPersonDetail(false);
+            setSelectedPersonId(null);
+          }}
+          personId={selectedPersonId}
         />
       )}
 
