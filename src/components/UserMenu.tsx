@@ -32,19 +32,13 @@ import {
   Sliders,
   Smartphone,
   Star,
-<<<<<<< HEAD
   Sun,
-=======
->>>>>>> origin/main
   Tablet,
   User,
   X,
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-<<<<<<< HEAD
 import { useTheme } from 'next-themes';
-=======
->>>>>>> origin/main
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 
@@ -59,6 +53,7 @@ import { OfflineDownloadPanel } from './OfflineDownloadPanel';
 import { useVersionCheck } from './VersionCheckProvider';
 import { VersionPanel } from './VersionPanel';
 import { DownloadManagementPanel } from './DownloadManagementPanel';
+import { LanguageSelector, getLanguageLabel, type Language } from './LanguageSelector';
 
 interface AuthInfo {
   username?: string;
@@ -96,6 +91,9 @@ export const UserMenu: React.FC = () => {
   const [isLoadingSubscribeUrl, setIsLoadingSubscribeUrl] = useState(false);
   const [subscribeAdFilterEnabled, setSubscribeAdFilterEnabled] = useState(false);
   const [subscribeYellowFilterEnabled, setSubscribeYellowFilterEnabled] = useState(false);
+
+  // 语言相关状态
+  const [currentLanguage, setCurrentLanguage] = useState<Language>('zh-CN');
 
   // Body 滚动锁定 - 使用 overflow 方式避免布局问题
   useEffect(() => {
@@ -2494,6 +2492,37 @@ export const UserMenu: React.FC = () => {
                         <Monitor className='w-4 h-4' />
                         <span className='text-xs'>跟随系统</span>
                       </button>
+                    </div>
+                  </div>
+
+                  {/* 语言设置 */}
+                  <div className='space-y-2'>
+                    <div>
+                      <h4 className='text-sm font-medium text-gray-700 dark:text-gray-300'>
+                        默认语言
+                      </h4>
+                      <p className='text-xs text-gray-500 dark:text-gray-400 mt-1'>
+                        设置界面默认显示语言
+                      </p>
+                    </div>
+                    <div className='grid grid-cols-3 gap-2'>
+                      {(['zh-CN', 'zh-TW', 'ja', 'en', 'ru'] as Language[]).map((lang) => (
+                        <button
+                          key={lang}
+                          onClick={() => {
+                            setCurrentLanguage(lang);
+                            localStorage.setItem('siteLanguage', lang);
+                            window.dispatchEvent(new CustomEvent('languagechange', { detail: lang }));
+                          }}
+                          className={`px-3 py-2.5 text-sm rounded-lg border-2 transition-all ${
+                            currentLanguage === lang
+                              ? 'border-green-500 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300'
+                              : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 text-gray-700 dark:text-gray-300'
+                          }`}
+                        >
+                          {getLanguageLabel(lang)}
+                        </button>
+                      ))}
                     </div>
                   </div>
 
