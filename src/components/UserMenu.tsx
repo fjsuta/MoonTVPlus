@@ -32,13 +32,19 @@ import {
   Sliders,
   Smartphone,
   Star,
+<<<<<<< HEAD
   Sun,
+=======
+>>>>>>> origin/main
   Tablet,
   User,
   X,
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+<<<<<<< HEAD
 import { useTheme } from 'next-themes';
+=======
+>>>>>>> origin/main
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 
