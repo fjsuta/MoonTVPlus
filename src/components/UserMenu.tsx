@@ -2495,6 +2495,125 @@ export const UserMenu: React.FC = () => {
                     </div>
                   </div>
 
+                  {/* UI排版设置 */}
+                  <div className='space-y-2'>
+                    <div>
+                      <h4 className='text-sm font-medium text-gray-700 dark:text-gray-300'>
+                        UI排版
+                      </h4>
+                      <p className='text-xs text-gray-500 dark:text-gray-400 mt-1'>
+                        设置界面布局样式
+                      </p>
+                    </div>
+                    <div className='grid grid-cols-2 gap-2'>
+                      <button
+                        onClick={() => {
+                          const newLayout = 'default';
+                          localStorage.setItem('uiLayout', newLayout);
+                          window.__uiLayout = newLayout;
+                          document.documentElement.dataset.uiLayout = newLayout;
+                          window.dispatchEvent(new CustomEvent('uiLayoutChanged'));
+                        }}
+                        className={`px-3 py-2.5 text-sm rounded-lg border-2 transition-all ${
+                          localStorage.getItem('uiLayout') !== 'sidebar'
+                            ? 'border-green-500 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300'
+                            : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 text-gray-700 dark:text-gray-300'
+                        }`}
+                      >
+                        默认排版
+                      </button>
+                      <button
+                        onClick={() => {
+                          const newLayout = 'sidebar';
+                          localStorage.setItem('uiLayout', newLayout);
+                          window.__uiLayout = newLayout;
+                          document.documentElement.dataset.uiLayout = newLayout;
+                          window.dispatchEvent(new CustomEvent('uiLayoutChanged'));
+                        }}
+                        className={`px-3 py-2.5 text-sm rounded-lg border-2 transition-all ${
+                          localStorage.getItem('uiLayout') === 'sidebar'
+                            ? 'border-green-500 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300'
+                            : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 text-gray-700 dark:text-gray-300'
+                        }`}
+                      >
+                        侧边栏
+                      </button>
+                    </div>
+                  </div>
+
+                  {localStorage.getItem('uiLayout') === 'sidebar' && (
+                    <>
+                      {/* 侧边栏样式 */}
+                      <div className='space-y-2'>
+                        <div>
+                          <h4 className='text-sm font-medium text-gray-700 dark:text-gray-300'>
+                            侧边栏样式
+                          </h4>
+                          <p className='text-xs text-gray-500 dark:text-gray-400 mt-1'>
+                            选择侧边栏按钮样式
+                          </p>
+                        </div>
+                        <div className='grid grid-cols-3 gap-2'>
+                          {([
+                            { value: 'default', label: '默认' },
+                            { value: 'pill', label: '胶囊' },
+                            { value: 'minimal', label: '图标' },
+                          ] as const).map((option) => (
+                            <button
+                              key={option.value}
+                              onClick={() => {
+                                const newStyle = option.value;
+                                localStorage.setItem('uiLayoutStyle', newStyle);
+                                window.__uiLayoutStyle = newStyle;
+                                document.documentElement.dataset.uiLayoutStyle = newStyle;
+                              }}
+                              className={`px-3 py-2.5 text-sm rounded-lg border-2 transition-all ${
+                                (localStorage.getItem('uiLayoutStyle') || 'default') === option.value
+                                  ? 'border-green-500 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300'
+                                  : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 text-gray-700 dark:text-gray-300'
+                              }`}
+                            >
+                              {option.label}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* 隐藏侧边栏标签 */}
+                      <div className='space-y-2'>
+                        <div className='flex items-center justify-between'>
+                          <div>
+                            <h4 className='text-sm font-medium text-gray-700 dark:text-gray-300'>
+                              隐藏侧边栏标签
+                            </h4>
+                            <p className='text-xs text-gray-500 dark:text-gray-400 mt-1'>
+                              隐藏菜单项的文字标签
+                            </p>
+                          </div>
+                          <label className='relative inline-flex items-center cursor-pointer'>
+                            <input
+                              type='checkbox'
+                              checked={localStorage.getItem('uiHideLabels') === 'true'}
+                              onChange={() => {
+                                const newValue = localStorage.getItem('uiHideLabels') !== 'true';
+                                localStorage.setItem('uiHideLabels', String(newValue));
+                                window.__uiHideLabels = newValue;
+                                if (newValue) {
+                                  document.documentElement.dataset.uiHideLabels = 'true';
+                                } else {
+                                  delete document.documentElement.dataset.uiHideLabels;
+                                }
+                              }}
+                              className='sr-only peer'
+                            />
+                            <div className='w-11 h-6 bg-gray-300 rounded-full peer-checked:bg-green-500 transition-colors dark:bg-gray-600'></div>
+                            <div className='absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full transition-transform peer-checked:translate-x-5'></div>
+                          </label>
+                        </div>
+                      </div>
+                    </>
+                  )}
+
                   {/* 语言设置 */}
                   <div className='space-y-2'>
                     <div>
