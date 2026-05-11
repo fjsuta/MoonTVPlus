@@ -20,6 +20,7 @@ import {
   Mail,
   MessageSquare,
   Monitor,
+  Moon,
   MoveDown,
   MoveUp,
   Package,
@@ -31,11 +32,13 @@ import {
   Sliders,
   Smartphone,
   Star,
+  Sun,
   Tablet,
   User,
   X,
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { useTheme } from 'next-themes';
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 
@@ -58,6 +61,7 @@ interface AuthInfo {
 
 export const UserMenu: React.FC = () => {
   const router = useRouter();
+  const { theme, setTheme, resolvedTheme } = useTheme();
   const { updateStatus, isChecking } = useVersionCheck();
   const [isOpen, setIsOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -2438,6 +2442,53 @@ export const UserMenu: React.FC = () => {
                         <div className='absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full transition-transform peer-checked:translate-x-5'></div>
                       </div>
                     </label>
+                  </div>
+
+                  {/* 暗黑模式 */}
+                  <div className='space-y-2'>
+                    <div>
+                      <h4 className='text-sm font-medium text-gray-700 dark:text-gray-300'>
+                        暗黑模式
+                      </h4>
+                      <p className='text-xs text-gray-500 dark:text-gray-400 mt-1'>
+                        设置界面明暗主题
+                      </p>
+                    </div>
+                    <div className='grid grid-cols-3 gap-2'>
+                      <button
+                        onClick={() => setTheme('light')}
+                        className={`px-3 py-2.5 text-sm rounded-lg border-2 transition-all flex flex-col items-center gap-1 ${
+                          theme === 'light'
+                            ? 'border-green-500 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300'
+                            : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+                        }`}
+                      >
+                        <Sun className='w-4 h-4' />
+                        <span className='text-xs'>浅色</span>
+                      </button>
+                      <button
+                        onClick={() => setTheme('dark')}
+                        className={`px-3 py-2.5 text-sm rounded-lg border-2 transition-all flex flex-col items-center gap-1 ${
+                          theme === 'dark'
+                            ? 'border-green-500 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300'
+                            : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+                        }`}
+                      >
+                        <Moon className='w-4 h-4' />
+                        <span className='text-xs'>深色</span>
+                      </button>
+                      <button
+                        onClick={() => setTheme('system')}
+                        className={`px-3 py-2.5 text-sm rounded-lg border-2 transition-all flex flex-col items-center gap-1 ${
+                          theme === 'system'
+                            ? 'border-green-500 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300'
+                            : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+                        }`}
+                      >
+                        <Monitor className='w-4 h-4' />
+                        <span className='text-xs'>跟随系统</span>
+                      </button>
+                    </div>
                   </div>
 
                   {/* 主题颜色 */}
