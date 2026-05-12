@@ -20,6 +20,7 @@ import {
   Mail,
   MessageSquare,
   Monitor,
+  Moon,
   MoveDown,
   MoveUp,
   Package,
@@ -31,11 +32,13 @@ import {
   Sliders,
   Smartphone,
   Star,
+  Sun,
   Tablet,
   User,
   X,
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { useTheme } from 'next-themes';
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 
@@ -50,6 +53,7 @@ import { OfflineDownloadPanel } from './OfflineDownloadPanel';
 import { useVersionCheck } from './VersionCheckProvider';
 import { VersionPanel } from './VersionPanel';
 import { DownloadManagementPanel } from './DownloadManagementPanel';
+import { LanguageSelector, getLanguageLabel, type Language } from './LanguageSelector';
 
 interface AuthInfo {
   username?: string;
@@ -58,6 +62,7 @@ interface AuthInfo {
 
 export const UserMenu: React.FC = () => {
   const router = useRouter();
+  const { theme, setTheme, resolvedTheme } = useTheme();
   const { updateStatus, isChecking } = useVersionCheck();
   const [isOpen, setIsOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -86,6 +91,9 @@ export const UserMenu: React.FC = () => {
   const [isLoadingSubscribeUrl, setIsLoadingSubscribeUrl] = useState(false);
   const [subscribeAdFilterEnabled, setSubscribeAdFilterEnabled] = useState(false);
   const [subscribeYellowFilterEnabled, setSubscribeYellowFilterEnabled] = useState(false);
+
+  // 语言相关状态
+  const [currentLanguage, setCurrentLanguage] = useState<Language>('zh-CN');
 
   // Body 滚动锁定 - 使用 overflow 方式避免布局问题
   useEffect(() => {
@@ -2438,6 +2446,203 @@ export const UserMenu: React.FC = () => {
                         <div className='absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full transition-transform peer-checked:translate-x-5'></div>
                       </div>
                     </label>
+                  </div>
+
+                  {/* 暗黑模式 */}
+                  <div className='space-y-2'>
+                    <div>
+                      <h4 className='text-sm font-medium text-gray-700 dark:text-gray-300'>
+                        暗黑模式
+                      </h4>
+                      <p className='text-xs text-gray-500 dark:text-gray-400 mt-1'>
+                        设置界面明暗主题
+                      </p>
+                    </div>
+                    <div className='grid grid-cols-3 gap-2'>
+                      <button
+                        onClick={() => setTheme('light')}
+                        className={`px-3 py-2.5 text-sm rounded-lg border-2 transition-all flex flex-col items-center gap-1 ${
+                          theme === 'light'
+                            ? 'border-green-500 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300'
+                            : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+                        }`}
+                      >
+                        <Sun className='w-4 h-4' />
+                        <span className='text-xs'>浅色</span>
+                      </button>
+                      <button
+                        onClick={() => setTheme('dark')}
+                        className={`px-3 py-2.5 text-sm rounded-lg border-2 transition-all flex flex-col items-center gap-1 ${
+                          theme === 'dark'
+                            ? 'border-green-500 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300'
+                            : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+                        }`}
+                      >
+                        <Moon className='w-4 h-4' />
+                        <span className='text-xs'>深色</span>
+                      </button>
+                      <button
+                        onClick={() => setTheme('system')}
+                        className={`px-3 py-2.5 text-sm rounded-lg border-2 transition-all flex flex-col items-center gap-1 ${
+                          theme === 'system'
+                            ? 'border-green-500 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300'
+                            : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+                        }`}
+                      >
+                        <Monitor className='w-4 h-4' />
+                        <span className='text-xs'>跟随系统</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* UI排版设置 */}
+                  <div className='space-y-2'>
+                    <div>
+                      <h4 className='text-sm font-medium text-gray-700 dark:text-gray-300'>
+                        UI排版
+                      </h4>
+                      <p className='text-xs text-gray-500 dark:text-gray-400 mt-1'>
+                        设置界面布局样式
+                      </p>
+                    </div>
+                    <div className='grid grid-cols-2 gap-2'>
+                      <button
+                        onClick={() => {
+                          const newLayout = 'default';
+                          localStorage.setItem('uiLayout', newLayout);
+                          window.__uiLayout = newLayout;
+                          document.documentElement.dataset.uiLayout = newLayout;
+                          window.dispatchEvent(new CustomEvent('uiLayoutChanged'));
+                        }}
+                        className={`px-3 py-2.5 text-sm rounded-lg border-2 transition-all ${
+                          localStorage.getItem('uiLayout') !== 'sidebar'
+                            ? 'border-green-500 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300'
+                            : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 text-gray-700 dark:text-gray-300'
+                        }`}
+                      >
+                        默认排版
+                      </button>
+                      <button
+                        onClick={() => {
+                          const newLayout = 'sidebar';
+                          localStorage.setItem('uiLayout', newLayout);
+                          window.__uiLayout = newLayout;
+                          document.documentElement.dataset.uiLayout = newLayout;
+                          window.dispatchEvent(new CustomEvent('uiLayoutChanged'));
+                        }}
+                        className={`px-3 py-2.5 text-sm rounded-lg border-2 transition-all ${
+                          localStorage.getItem('uiLayout') === 'sidebar'
+                            ? 'border-green-500 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300'
+                            : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 text-gray-700 dark:text-gray-300'
+                        }`}
+                      >
+                        侧边栏
+                      </button>
+                    </div>
+                  </div>
+
+                  {localStorage.getItem('uiLayout') === 'sidebar' && (
+                    <>
+                      {/* 侧边栏样式 */}
+                      <div className='space-y-2'>
+                        <div>
+                          <h4 className='text-sm font-medium text-gray-700 dark:text-gray-300'>
+                            侧边栏样式
+                          </h4>
+                          <p className='text-xs text-gray-500 dark:text-gray-400 mt-1'>
+                            选择侧边栏按钮样式
+                          </p>
+                        </div>
+                        <div className='grid grid-cols-3 gap-2'>
+                          {([
+                            { value: 'default', label: '默认' },
+                            { value: 'pill', label: '胶囊' },
+                            { value: 'minimal', label: '图标' },
+                          ] as const).map((option) => (
+                            <button
+                              key={option.value}
+                              onClick={() => {
+                                const newStyle = option.value;
+                                localStorage.setItem('uiLayoutStyle', newStyle);
+                                window.__uiLayoutStyle = newStyle;
+                                document.documentElement.dataset.uiLayoutStyle = newStyle;
+                              }}
+                              className={`px-3 py-2.5 text-sm rounded-lg border-2 transition-all ${
+                                (localStorage.getItem('uiLayoutStyle') || 'default') === option.value
+                                  ? 'border-green-500 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300'
+                                  : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 text-gray-700 dark:text-gray-300'
+                              }`}
+                            >
+                              {option.label}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* 隐藏侧边栏标签 */}
+                      <div className='space-y-2'>
+                        <div className='flex items-center justify-between'>
+                          <div>
+                            <h4 className='text-sm font-medium text-gray-700 dark:text-gray-300'>
+                              隐藏侧边栏标签
+                            </h4>
+                            <p className='text-xs text-gray-500 dark:text-gray-400 mt-1'>
+                              隐藏菜单项的文字标签
+                            </p>
+                          </div>
+                          <label className='relative inline-flex items-center cursor-pointer'>
+                            <input
+                              type='checkbox'
+                              checked={localStorage.getItem('uiHideLabels') === 'true'}
+                              onChange={() => {
+                                const newValue = localStorage.getItem('uiHideLabels') !== 'true';
+                                localStorage.setItem('uiHideLabels', String(newValue));
+                                window.__uiHideLabels = newValue;
+                                if (newValue) {
+                                  document.documentElement.dataset.uiHideLabels = 'true';
+                                } else {
+                                  delete document.documentElement.dataset.uiHideLabels;
+                                }
+                              }}
+                              className='sr-only peer'
+                            />
+                            <div className='w-11 h-6 bg-gray-300 rounded-full peer-checked:bg-green-500 transition-colors dark:bg-gray-600'></div>
+                            <div className='absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full transition-transform peer-checked:translate-x-5'></div>
+                          </label>
+                        </div>
+                      </div>
+                    </>
+                  )}
+
+                  {/* 语言设置 */}
+                  <div className='space-y-2'>
+                    <div>
+                      <h4 className='text-sm font-medium text-gray-700 dark:text-gray-300'>
+                        默认语言
+                      </h4>
+                      <p className='text-xs text-gray-500 dark:text-gray-400 mt-1'>
+                        设置界面默认显示语言
+                      </p>
+                    </div>
+                    <div className='grid grid-cols-3 gap-2'>
+                      {(['zh-CN', 'zh-TW', 'ja', 'en', 'ru'] as Language[]).map((lang) => (
+                        <button
+                          key={lang}
+                          onClick={() => {
+                            setCurrentLanguage(lang);
+                            localStorage.setItem('siteLanguage', lang);
+                            window.dispatchEvent(new CustomEvent('languagechange', { detail: lang }));
+                          }}
+                          className={`px-3 py-2.5 text-sm rounded-lg border-2 transition-all ${
+                            currentLanguage === lang
+                              ? 'border-green-500 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300'
+                              : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 text-gray-700 dark:text-gray-300'
+                          }`}
+                        >
+                          {getLanguageLabel(lang)}
+                        </button>
+                      ))}
+                    </div>
                   </div>
 
                   {/* 主题颜色 */}

@@ -11,6 +11,7 @@ import { checkForUpdates, UpdateStatus } from '@/lib/version_check';
 
 import { useSite } from '@/components/SiteProvider';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { LanguageSelector } from '@/components/LanguageSelector';
 
 // 版本显示组件
 function VersionDisplay() {
@@ -287,7 +288,8 @@ function LoginPageClient() {
         backgroundRepeat: 'no-repeat'
       } : undefined}
     >
-      <div className='absolute top-4 right-4'>
+      <div className='absolute top-4 right-4 flex items-center gap-2'>
+        <LanguageSelector />
         <ThemeToggle />
       </div>
       <div className='relative z-10 w-full max-w-md rounded-3xl bg-gradient-to-b from-white/90 via-white/70 to-white/40 dark:from-zinc-900/90 dark:via-zinc-900/70 dark:to-zinc-900/40 shadow-2xl p-10 dark:border dark:border-zinc-800'>
